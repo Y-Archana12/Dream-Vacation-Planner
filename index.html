@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="hero-section">
+        <div class="overlay"></div>
+        <div class="hero-content text-center">
+            <h1 class="display-3 text-white mb-4 fw-bold">Dream Vacation Planner</h1>
+            <p class="lead text-white opacity-90 mb-5">Discover the perfect destination for your next adventure</p>
+            
+            <form method="POST" class="search-form">
+                <div class="input-group custom-input">
+                    <span class="input-group-text">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" name="city" class="form-control form-control-lg" 
+                           placeholder="Enter City (e.g. Paris, Tokyo)" required>
+                    <button type="submit" class="btn btn-gradient">
+                        <i class="fas fa-plane-departure me-2"></i> Explore
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if weather or images or tourist_places %}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+
+                {% if weather %}
+                <!-- Weather Section -->
+                <div class="weather-section mb-5">
+                    <h2 class="mb-4 text-dark">
+                        <i class="fas fa-map-marker-alt me-2"></i> {{ city.title() }}
+                    </h2>
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="weather-card p-3 border rounded">
+                                <i class="fas fa-cloud-sun fa-3x mb-3 text-primary"></i>
+                                <h3 class="text-dark">{{ weather.weather[0].description | title }}</h3>
+                                <p class="text-muted">Weather Condition</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="weather-card p-3 border rounded">
+                                <i class="fas fa-temperature-high fa-3x mb-3 text-danger"></i>
+                                <h3 class="text-dark">{{ weather.main.temp }}°C</h3>
+                                <p class="text-muted">Temperature</p>
+                                <p class="text-dark">Feels like: {{ weather.main.feels_like }}°C</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="weather-card p-3 border rounded">
+                                <i class="fas fa-wind fa-3x mb-3 text-info"></i>
+                                <h3 class="text-dark">{{ weather.wind.speed }} m/s</h3>
+                                <p class="text-muted">Wind Speed</p>
+                                <p class="text-dark">Humidity: {{ weather.main.humidity }}%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if images %}
+                <!-- Images Section -->
+                <div class="city-images-section mb-5">
+                    <h2 class="mb-4 text-dark">
+                        <i class="fas fa-camera me-2"></i> Explore {{ city.title() }}
+                    </h2>
+                    <div class="row g-4">
+                        {% for image in images %}
+                        <div class="col-md-4">
+                            <div class="city-image-wrapper border rounded overflow-hidden">
+                                <img src="{{ image }}" alt="{{ city }}" class="city-image img-fluid">
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if tourist_places %}
+                <!-- Tourist Places Section -->
+                <div class="tourist-places-section mb-5">
+                    <h2 class="mb-4 text-dark">
+                        <i class="fas fa-landmark me-2"></i> Must-Visit Places in {{ city.title() }}
+                    </h2>
+                    <div class="row g-4">
+                        {% for place in tourist_places %}
+                        <div class="col-md-6">
+                            <div class="place-card p-3 border rounded">
+                                <div class="place-info">
+                                    <h3 class="place-name text-dark">{{ place.name }}</h3>
+                                    <div class="place-rating text-dark">
+                                        <i class="fas fa-star text-warning"></i>
+                                        {{ place.rating if place.rating else 'N/A' }}
+                                        <span class="text-muted ms-2">({{ place.user_ratings_total if place.user_ratings_total else '0' }} reviews)</span>
+                                    </div>
+                                    <p class="place-address text-dark">
+                                        <i class="fas fa-map-marker-alt text-danger"></i>
+                                        {{ place.formatted_address if place.formatted_address else 'Address not available' }}
+                                    </p>
+                                    {% if place.phone != 'N/A' %}
+                                    <p class="place-phone text-dark">
+                                        <i class="fas fa-phone text-success"></i>
+                                        {{ place.phone }}
+                                    </p>
+                                    {% endif %}
+                                    {% if place.website != 'N/A' %}
+                                    <p class="place-website text-dark">
+                                        <i class="fas fa-globe text-primary"></i>
+                                        <a href="{{ place.website }}" target="_blank" class="text-decoration-none">Visit Website</a>
+                                    </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Itinerary, Packing List, and Map Sections -->
+                {% if city %}
+                <div class="itinerary-section mb-5">
+                    <h2 class="mb-4 text-dark">
+                        <i class="fas fa-calendar-alt me-2"></i> Suggested 3-Day Itinerary for {{ city.title() }}
+                    </h2>
+                    <div id="itinerary-content" class="itinerary-content text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="packing-list-section mb-5">
+                    <h2 class="mb-4 text-dark">
+                        <i class="fas fa-suitcase me-2"></i> Packing List for {{ city.title() }}
+                    </h2>
+                    <div id="packing-list-content" class="packing-list-content text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="map-section mb-5">
+                    <h2 class="mb-4 text-dark">
+                        <i class="fas fa-map-marked-alt me-2"></i> Map of {{ city.title() }}
+                    </h2>
+                    {% if map_embed_url %}
+                    <div class="map-container border rounded overflow-hidden">
+                        <iframe 
+                            width="100%" 
+                            height="450" 
+                            frameborder="0" 
+                            style="border:0;"
+                            src="{{ map_embed_url }}" 
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- JavaScript to fetch itinerary and packing list -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const city = "{{ city }}";
+    if (city) {
+        fetch(`/get_itinerary/${city}`)
+            .then(res => res.json())
+            .then(data => {
+                let html = '';
+                for (const [day, activities] of Object.entries(data)) {
+                    html += `<div class="card mb-3"><div class="card-body"><h4 class="card-title text-dark">${day}</h4><ul class="list-group list-group-flush">`;
+                    activities.forEach(a => html += `<li class="list-group-item text-dark">${a}</li>`);
+                    html += '</ul></div></div>';
+                }
+                document.getElementById('itinerary-content').innerHTML = html;
+            })
+            .catch(error => {
+                document.getElementById('itinerary-content').innerHTML = 
+                    '<div class="alert alert-danger">Failed to load itinerary. Please try again.</div>';
+            });
+
+        fetch(`/get_packing_list/${city}`)
+            .then(res => res.json())
+            .then(data => {
+                let html = `<div class="alert alert-info mb-3">
+                    ${data.weather_based ? 'This list is customized based on current weather' : 'Generic packing list (weather data not available)'}</div>
+                    <div class="row"><div class="col-md-6"><div class="card"><div class="card-body"><h5 class="card-title text-dark">Essentials</h5><ul class="list-group list-group-flush">`;
+                data.essentials.forEach(item => html += `<li class="list-group-item text-dark">${item}</li>`);
+                html += `</ul></div></div></div><div class="col-md-6"><div class="card"><div class="card-body"><h5 class="card-title text-dark">Clothing</h5><ul class="list-group list-group-flush">`;
+                data.clothing.forEach(item => html += `<li class="list-group-item text-dark">${item}</li>`);
+                html += `</ul></div></div></div></div>`;
+                document.getElementById('packing-list-content').innerHTML = html;
+            })
+            .catch(error => {
+                document.getElementById('packing-list-content').innerHTML = 
+                    '<div class="alert alert-danger">Failed to load packing list. Please try again.</div>';
+            });
+    }
+});
+</script>
+
+<!-- CSS Styles -->
+<style>
+.hero-section {
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
+                url('https://images.unsplash.com/photo-1499678329028-101435549a4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+    background-size: cover;
+    background-position: center;
+    height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.search-form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.custom-input {
+    border-radius: 50px;
+    overflow: hidden;
+}
+
+.custom-input input {
+    border: none;
+    padding: 15px 20px;
+}
+
+.custom-input .input-group-text {
+    background: white;
+    border: none;
+    padding: 0 20px;
+}
+
+.btn-gradient {
+    background: linear-gradient(45deg, #4a90e2, #67b26f);
+    color: white;
+    border: none;
+    padding: 0 25px;
+    transition: all 0.3s ease;
+}
+
+.btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.city-image-wrapper {
+    height: 250px;
+    overflow: hidden;
+}
+
+.city-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.city-image:hover {
+    transform: scale(1.05);
+}
+
+.place-card {
+    transition: transform 0.3s ease;
+    height: 100%;
+}
+
+.place-card:hover {
+    transform: translateY(-5px);
+}
+
+.map-container {
+    height: 450px;
+    background: #f8f9fa;
+}
+</style>
+{% endblock %}
